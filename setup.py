@@ -28,8 +28,8 @@ setup(
     version=VERSION,
     packages=["datasette_app_support"],
     entry_points={"datasette": ["app_support = datasette_app_support"]},
-    install_requires=["datasette"],
-    extras_require={"test": ["pytest", "pytest-asyncio"]},
+    install_requires=["datasette>=0.59a2"],
+    extras_require={"test": ["pytest", "pytest-asyncio", "black"]},
     tests_require=["datasette-app-support[test]"],
     python_requires=">=3.6",
 )
