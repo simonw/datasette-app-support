@@ -27,6 +27,12 @@ setup(
     license="Apache License, Version 2.0",
     version=VERSION,
     packages=["datasette_app_support"],
+    package_data={
+        "datasette_app_support": [
+            "static/*.js",
+            "static/*.css",
+        ],
+    },
     entry_points={"datasette": ["app_support = datasette_app_support"]},
     install_requires=["datasette>=0.59a2"],
     extras_require={"test": ["pytest", "pytest-asyncio", "black"]},
