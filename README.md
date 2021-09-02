@@ -27,6 +27,16 @@ Attaches a new database file to the running Datasette instance - used by the "Op
 
 Returns HTTP 200 if it works, 400 with an `"error"` JSON string message if it fails.
 
+### /-/open-csv-file
+
+```
+POST /-/open-csv-file
+{"path": "/path/to/file.csv"}
+```
+Impors a CSV or TSV file into the default `/temporary` in-memory database. Used by the "Open CSV/TSV..." menu option.
+
+Returns HTTP 200 if it works, 400 with an `"error"` JSON string message if it fails.
+
 ## Development
 
 To set up this plugin locally, first checkout the code. Then create a new virtual environment:
