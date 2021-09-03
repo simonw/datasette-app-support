@@ -44,8 +44,10 @@ async def open_database_file(request, datasette):
         return Response.json(
             {"ok": False, "error": "That file is already open"}, status=400
         )
-    datasette.add_database(Database(datasette, path=filepath, is_mutable=True))
-    return Response.json({"ok": True})
+    added_db = datasette.add_database(
+        Database(datasette, path=filepath, is_mutable=True)
+    )
+    return Response.json({"ok": True, "path": datasette.urls.database(added_db.name)})
 
 
 class PathError(Exception):

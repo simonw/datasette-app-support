@@ -11,7 +11,7 @@ async def test_open_database_files(tmpdir):
     db.execute("create table foo (id integer primary key)")
     response = await datasette.client.post("/-/open-database-file", json={"path": path})
     assert response.status_code == 200
-    assert response.json()["ok"] is True
+    assert response.json() == {"ok": True, "path": "/test"}
     response = await datasette.client.get("/test.json")
     assert (
         response.json()["tables"][0].items()
