@@ -50,12 +50,32 @@ async def open_database_file(request, datasette):
     return Response.json({"ok": True, "path": datasette.urls.database(added_db.name)})
 
 
+async def new_empty_database_file(request, datasette):
+    try:
+        filepath = await _filepath_from_json_body(request, must_exist=False)
+    except PathError as e:
+        return Response.json({"ok": False, "error": e.message}, status=400)
+    # File should not exist yet
+    if os.path.exists(filepath):
+        return Response.json(
+            {"ok": False, "error": "That file already exists"}, status=400
+        )
+
+    conn = sqlite3.connect(filepath)
+    conn.execute("vacuum")
+
+    added_db = datasette.add_database(
+        Database(datasette, path=filepath, is_mutable=True)
+    )
+    return Response.json({"ok": True, "path": datasette.urls.database(added_db.name)})
+
+
 class PathError(Exception):
     def __init__(self, message):
         self.message = message
 
 
-async def _filepath_from_json_body(request):
+async def _filepath_from_json_body(request, must_exist=True):
     body = await request.post_body()
     try:
         data = json.loads(body)
@@ -64,7 +84,7 @@ async def _filepath_from_json_body(request):
     filepath = data.get("path")
     if not filepath:
         raise PathError("'path' key is required'")
-    if not os.path.exists(filepath):
+    if must_exist and not os.path.exists(filepath):
         raise PathError("'path' does not exist")
     return filepath
 
@@ -127,6 +147,7 @@ async def auth_token_persistent(request, datasette):
 def register_routes():
     return [
         (r"^/-/open-database-file$", open_database_file),
+        (r"^/-/new-empty-database-file$", new_empty_database_file),
         (r"^/-/open-csv-file$", open_csv_file),
         (r"^/-/auth-token-persistent$", auth_token_persistent),
     ]

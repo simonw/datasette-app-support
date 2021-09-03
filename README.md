@@ -27,6 +27,16 @@ Attaches a new database file to the running Datasette instance - used by the "Op
 
 Returns HTTP 200 status with `{"ok": True, "path": "/file"}` if it works, 400 with an `"error"` JSON string message if it fails.
 
+### /-/new-empty-database-file
+
+```
+POST /-/new-empty-database-file
+{"path": "/path/to/file.db"}
+```
+Creates a brand new empty SQLite database file at the specified path and attaches it to the Datasette instance. Used by the "Create Empty Database..." menu option.
+
+Returns HTTP 200 status with `{"ok": True, "path": "/file"}` if it works, 400 with an `"error"` JSON string message if it fails.
+
 ### /-/open-csv-file
 
 ```
