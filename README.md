@@ -35,7 +35,7 @@ POST /-/open-csv-file
 ```
 Impors a CSV or TSV file into the default `/temporary` in-memory database. Used by the "Open CSV/TSV..." menu option.
 
-Returns HTTP 200 status with `{"ok": True, "path": "/temporary/file"}` if it works, 400 with an `"error"` JSON string message if it fails.
+Returns HTTP 200 status with `{"ok": True, "path": "/temporary/file"}` if it works, 400 or 500 with an `"error"` JSON string message if it fails.
 
 ## Development
 

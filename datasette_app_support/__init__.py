@@ -85,22 +85,24 @@ async def open_csv_file(request, datasette):
         table_name = "{}_{}".format(root_table_name, i)
         i += 1
 
-    # TODO: verify file is valid
-    rows = rows_from_file(open(filepath, "rb"))[0]
+    try:
+        rows = rows_from_file(open(filepath, "rb"))[0]
 
-    def write_rows(conn):
-        dbconn = sqlite_utils.Database(conn)
-        dbconn[table_name].insert_all(rows)
-        return dbconn[table_name].count
+        def write_rows(conn):
+            dbconn = sqlite_utils.Database(conn)
+            dbconn[table_name].insert_all(rows)
+            return dbconn[table_name].count
 
-    num_rows = await db.execute_write_fn(write_rows, block=True)
-    return Response.json(
-        {
-            "ok": True,
-            "path": datasette.urls.table("temporary", table_name),
-            "rows": num_rows,
-        }
-    )
+        num_rows = await db.execute_write_fn(write_rows, block=True)
+        return Response.json(
+            {
+                "ok": True,
+                "path": datasette.urls.table("temporary", table_name),
+                "rows": num_rows,
+            }
+        )
+    except Exception as e:
+        return Response.json({"ok": False, "error": str(e)}, status=500)
 
 
 async def auth_token_persistent(request, datasette):
