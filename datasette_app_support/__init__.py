@@ -16,12 +16,29 @@ def startup(datasette):
     datasette.add_memory_database("temporary")
 
 
+unauthorized = Response.json({"ok": False, "error": "Not authorized"}, status=401)
+
+
 @hookimpl
 def extra_css_urls(datasette):
     return [datasette.urls.static_plugins("datasette_app_support", "sticky-footer.css")]
 
 
+def check_auth(request):
+    env_token = os.environ.get("DATASETTE_API_TOKEN")
+    request_token = request.headers.get("authorization", "").replace("Bearer ", "")
+    if not env_token or not request_token:
+        print(f"Not blah {env_token=} {request_token=}")
+        return False
+    return secrets.compare_digest(
+        request_token,
+        env_token,
+    )
+
+
 async def open_database_file(request, datasette):
+    if not check_auth(request):
+        return unauthorized
     try:
         filepath = await _filepath_from_json_body(request)
     except PathError as e:
@@ -51,6 +68,8 @@ async def open_database_file(request, datasette):
 
 
 async def new_empty_database_file(request, datasette):
+    if not check_auth(request):
+        return unauthorized
     try:
         filepath = await _filepath_from_json_body(request, must_exist=False)
     except PathError as e:
@@ -90,6 +109,8 @@ async def _filepath_from_json_body(request, must_exist=True):
 
 
 async def open_csv_file(request, datasette):
+    if not check_auth(request):
+        return unauthorized
     try:
         filepath = await _filepath_from_json_body(request)
     except PathError as e:

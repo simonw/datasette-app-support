@@ -9,7 +9,11 @@ async def test_open_database_files(tmpdir):
     path = str(tmpdir / "test.db")
     db = sqlite3.connect(path)
     db.execute("create table foo (id integer primary key)")
-    response = await datasette.client.post("/-/open-database-file", json={"path": path})
+    response = await datasette.client.post(
+        "/-/open-database-file",
+        json={"path": path},
+        headers={"Authorization": "Bearer fake-token"},
+    )
     assert response.status_code == 200
     assert response.json() == {"ok": True, "path": "/test"}
     response = await datasette.client.get("/test.json")
@@ -19,7 +23,9 @@ async def test_open_database_files(tmpdir):
     )
     # Opening the same file again won't work
     response2 = await datasette.client.post(
-        "/-/open-database-file", json={"path": path}
+        "/-/open-database-file",
+        json={"path": path},
+        headers={"Authorization": "Bearer fake-token"},
     )
     assert response2.status_code == 400
     assert response2.json() == {"error": "That file is already open", "ok": False}
@@ -36,6 +42,10 @@ async def test_open_database_files_invalid(file, tmpdir):
         open(path, "w").write("invalid")
     else:
         assert False
-    response = await datasette.client.post("/-/open-database-file", json={"path": path})
+    response = await datasette.client.post(
+        "/-/open-database-file",
+        json={"path": path},
+        headers={"Authorization": "Bearer fake-token"},
+    )
     assert response.status_code == 400
     assert response.json()["ok"] is False

@@ -13,9 +13,13 @@ Install this plugin in the same environment as Datasette.
 
     $ datasette install datasette-app-support
 
+Using this outside of the context of `Datasette.app` probably won't work.
+
 ## API endpoints
 
 This plugin exposes APIs that are called by the Electron wrapper.
+
+All plugins are protected by authentication: they need to be called with a `Authorization: Bearer xxx` token here the `xxx` matches the value of the `DATASETTE_API_TOKEN` environment variable.
 
 ### /-/open-database-file
 
