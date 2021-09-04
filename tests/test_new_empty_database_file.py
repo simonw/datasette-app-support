@@ -1,6 +1,5 @@
 from datasette.app import Datasette
 import pytest
-import sqlite3
 
 
 @pytest.mark.asyncio

@@ -146,22 +146,18 @@ async def open_csv_file(request, datasette):
         return Response.json({"ok": False, "error": str(e)}, status=500)
 
 
-async def auth_token_persistent(request, datasette):
-    token = request.args.get("token") or ""
-    if not datasette._root_token:
-        raise Forbidden("Root token has already been used")
-    if secrets.compare_digest(token, datasette._root_token):
-        datasette._root_token = None
-        response = Response.redirect(datasette.urls.instance())
-        response.set_cookie(
-            "ds_actor",
-            datasette.sign({"a": {"id": "root"}}, "actor"),
-            expires=364 * 24 * 60 * 60,
-        )
-        print(response._set_cookie_headers)
-        return response
-    else:
-        raise Forbidden("Invalid token")
+async def auth_app_user(request, datasette):
+    if not check_auth(request):
+        return unauthorized
+    body = await request.post_body()
+    try:
+        data = json.loads(body)
+    except ValueError:
+        data = {}
+    redirect = data.get("redirect") or "/"
+    response = Response.redirect(redirect)
+    response.set_cookie("ds_actor", datasette.sign({"a": {"id": "admin"}}, "actor"))
+    return response
 
 
 @hookimpl
@@ -170,5 +166,5 @@ def register_routes():
         (r"^/-/open-database-file$", open_database_file),
         (r"^/-/new-empty-database-file$", new_empty_database_file),
         (r"^/-/open-csv-file$", open_csv_file),
-        (r"^/-/auth-token-persistent$", auth_token_persistent),
+        (r"^/-/auth-app-user$", auth_app_user),
     ]

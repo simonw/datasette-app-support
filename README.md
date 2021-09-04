@@ -21,6 +21,14 @@ This plugin exposes APIs that are called by the Electron wrapper.
 
 All plugins are protected by authentication: they need to be called with a `Authorization: Bearer xxx` token here the `xxx` matches the value of the `DATASETTE_API_TOKEN` environment variable.
 
+### /-/auth-app-user
+
+```
+POST /-/auth-app-user
+{"redirect": "/-/metadata"}
+```
+If a valid `Authorization` header is passed, sets a signed cookie identifying the user as `{"id": "admin"}` and redirects them to the specified page.
+
 ### /-/open-database-file
 
 ```
