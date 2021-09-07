@@ -16,6 +16,13 @@ def startup(datasette):
     datasette.add_memory_database("temporary")
 
 
+@hookimpl
+def permission_allowed(actor, action, resource):
+    # Block access to _internal even for the "root" actor
+    if action == "view-database" and resource == "_internal":
+        return False
+
+
 unauthorized = Response.json({"ok": False, "error": "Not authorized"}, status=401)
 
 
