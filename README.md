@@ -55,9 +55,19 @@ Returns HTTP 200 status with `{"ok": True, "path": "/file"}` if it works, 400 wi
 POST /-/open-csv-file
 {"path": "/path/to/file.csv"}
 ```
-Impors a CSV or TSV file into the default `/temporary` in-memory database. Used by the "Open CSV/TSV..." menu option.
+Imports a CSV or TSV file into the default `/temporary` in-memory database. Used by the "Open CSV..." menu option.
 
-Returns HTTP 200 status with `{"ok": True, "path": "/temporary/file"}` if it works, 400 or 500 with an `"error"` JSON string message if it fails.
+Returns HTTP 200 status with `{"ok": True, "path": "/temporary/table"}` if it works, 400 or 500 with an `"error"` JSON string message if it fails.
+
+### /-/import-csv-file
+
+```
+POST /-/import-csv-file
+{"path": "/path/to/file.csv", "database": "database_name"}
+```
+Permanently imports a CSV or TSV file into the specified database. Used by the "Import CSV..." menu option.
+
+Returns HTTP 200 status with `{"ok": True, "path": "/database_name/table"}` if it works, 400 or 500 with an `"error"` JSON string message if it fails.
 
 ## Development
 

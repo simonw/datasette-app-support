@@ -94,7 +94,7 @@ class PathError(Exception):
         self.message = message
 
 
-async def _filepath_from_json_body(request, must_exist=True):
+async def _filepath_from_json_body(request, must_exist=True, return_data=False):
     body = await request.post_body()
     try:
         data = json.loads(body)
@@ -105,18 +105,34 @@ async def _filepath_from_json_body(request, must_exist=True):
         raise PathError("'path' key is required'")
     if must_exist and not os.path.exists(filepath):
         raise PathError("'path' does not exist")
-    return filepath
+    if return_data:
+        return filepath, data
+    else:
+        return filepath
 
 
 async def open_csv_file(request, datasette):
+    return await _import_csv_file(request, datasette, database="temporary")
+
+
+async def import_csv_file(request, datasette):
+    return await _import_csv_file(request, datasette)
+
+
+async def _import_csv_file(request, datasette, database=None):
     if not check_auth(request):
         return unauthorized
     try:
-        filepath = await _filepath_from_json_body(request)
+        filepath, body = await _filepath_from_json_body(request, return_data=True)
     except PathError as e:
         return Response.json({"ok": False, "error": e.message}, status=400)
 
-    db = datasette.get_database("temporary")
+    if database is None:
+        database = body.get("database")
+    if not database or database not in datasette.databases:
+        return Response.json({"ok": False, "error": "Invalid database"}, status=400)
+
+    db = datasette.get_database(database)
 
     # Derive a table name
     table_name = pathlib.Path(filepath).stem
@@ -138,7 +154,7 @@ async def open_csv_file(request, datasette):
         return Response.json(
             {
                 "ok": True,
-                "path": datasette.urls.table("temporary", table_name),
+                "path": datasette.urls.table(database, table_name),
                 "rows": num_rows,
             }
         )
@@ -166,5 +182,6 @@ def register_routes():
         (r"^/-/open-database-file$", open_database_file),
         (r"^/-/new-empty-database-file$", new_empty_database_file),
         (r"^/-/open-csv-file$", open_csv_file),
+        (r"^/-/import-csv-file$", import_csv_file),
         (r"^/-/auth-app-user$", auth_app_user),
     ]
