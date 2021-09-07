@@ -172,7 +172,7 @@ async def auth_app_user(request, datasette):
         data = {}
     redirect = data.get("redirect") or "/"
     response = Response.redirect(redirect)
-    response.set_cookie("ds_actor", datasette.sign({"a": {"id": "admin"}}, "actor"))
+    response.set_cookie("ds_actor", datasette.sign({"a": {"id": "root"}}, "actor"))
     return response
 
 

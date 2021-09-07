@@ -14,6 +14,9 @@ async def test_auth_app_user():
     assert response.status_code == 302
     assert response.headers["location"] == "/-/metadata"
     assert response.headers["set-cookie"].startswith("ds_actor=")
+    assert datasette.unsign(response.cookies["ds_actor"], "actor") == {
+        "a": {"id": "root"}
+    }
     # With a bad token
     response2 = await datasette.client.post(
         "/-/auth-app-user",
