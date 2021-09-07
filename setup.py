@@ -31,6 +31,7 @@ setup(
         "datasette_app_support": [
             "static/*.js",
             "static/*.css",
+            "templates/*.html",
         ],
     },
     entry_points={"datasette": ["app_support = datasette_app_support"]},
