@@ -183,6 +183,24 @@ async def auth_app_user(request, datasette):
     return response
 
 
+async def dump_temporary_to_file(request, datasette):
+    if not check_auth(request):
+        return unauthorized
+    try:
+        filepath = await _filepath_from_json_body(request, must_exist=False)
+    except PathError as e:
+        return Response.json({"ok": False, "error": e.message}, status=400)
+    db = datasette.get_database("temporary")
+
+    def backup(conn):
+        conn.isolation_level = None
+        conn.execute("vacuum into '{}'".format(filepath))
+        conn.isolation_level = ""
+
+    await db.execute_write_fn(backup, block=True)
+    return Response.json({"ok": True, "path": filepath})
+
+
 @hookimpl
 def register_routes():
     return [
@@ -191,4 +209,5 @@ def register_routes():
         (r"^/-/open-csv-file$", open_csv_file),
         (r"^/-/import-csv-file$", import_csv_file),
         (r"^/-/auth-app-user$", auth_app_user),
+        (r"^/-/dump-temporary-to-file$", dump_temporary_to_file),
     ]

@@ -69,6 +69,16 @@ Permanently imports a CSV or TSV file into the specified database. Used by the "
 
 Returns HTTP 200 status with `{"ok": True, "path": "/database_name/table"}` if it works, 400 or 500 with an `"error"` JSON string message if it fails.
 
+### /-/dump-temporary-to-file
+
+```
+POST /-/dump-temporary-to-file
+{"path": "/path/to/backup.db"}
+```
+Dumps the contents of the `temporary` in-memory database to the specified file. This is intended to be used to take a temporary backup when the Datasette server is restarted after a plugin has been installed, see [datasette-app/issues/42](https://github.com/simonw/datasette-app/issues/42).
+
+Returns HTTP 200 status with `{"ok": True, "path": "/path/to/backup.db"}` if it works, 400 or 500 with an `"error"` JSON string message if it fails.
+
 ## Development
 
 To set up this plugin locally, first checkout the code. Then create a new virtual environment:
