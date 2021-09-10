@@ -1,0 +1,31 @@
+<p class="custom-sort-by">Sort by
+{% for column in display_columns %}
+{% if column.name in ("stargazers_count", "downloads_this_week", "latest_release_at") %}
+    {% if column.name == sort %}
+        <a href="{{ path_with_replaced_args(request, {'_sort_desc': column.name, '_sort': None, '_next': None}) }}" rel="nofollow">{{ column.name }}&nbsp;▼</a>
+    {% else %}
+        <a href="{{ path_with_replaced_args(request, {'_sort': column.name, '_sort_desc': None, '_next': None}) }}" rel="nofollow">{{ column.name }}{% if column.name == sort_desc %}&nbsp;▲{% endif %}</a>
+    {% endif %}
+    <span class="middot">&middot;</span>
+  {% endif %}
+{% endfor %}
+</p>
+
+{% for row in display_rows %}
+<div style="clear: both; border-bottom: 1px solid #0e0c82; margin: 0.5em 0; padding-bottom: 0.5em">
+<h2>{{ row.name }}</h2>
+{% if row.usesCustomOpenGraphImage %}
+  <img src="{{ row.openGraphImageUrl }}" style="max-width: 40%; float: right">
+{% endif %}
+<p>{{ row.description or "" }}</p>
+<p><strong>Downloads this week:</strong> {{ row.downloads_this_week }} &nbsp; <strong>Stars:</strong> {{ row.stargazers_count }}</p>
+<p><strong>Latest release:</strong> {{ row.tag_name }} on {{ prettydate(row.latest_release_at) }}</p>
+{% if row.installed == "installed" %}
+  <p><strong>Currently installed</strong></p>
+{% else %}
+  {% if actor.id == "root" and row.installed == "not installed" %}
+    <p><a class="install-plugin-button" href="javascript:datasetteApp.installPlugin('{{ row.name }}')">Install plugin: {{ row.name }}</a></p>
+  {% endif %}
+{% endif %}
+</div>
+{% endfor %}

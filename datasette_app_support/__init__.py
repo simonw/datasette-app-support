@@ -2,7 +2,9 @@ from datasette.database import Database
 from datasette.utils.asgi import Response, Forbidden
 from datasette.utils import sqlite3
 from datasette import hookimpl
+from dateutil import parser
 from sqlite_utils.utils import rows_from_file
+import httpx
 import json
 import os
 import pathlib
@@ -12,8 +14,34 @@ import sqlite_utils
 
 @hookimpl
 def startup(datasette):
-    datasette.remove_database("_memory")
-    datasette.add_memory_database("temporary")
+    async def inner():
+        # TODO: handle API pagination
+        plugins = httpx.get(
+            "https://datasette.io/content/plugins.json?_shape=array"
+        ).json()
+        # Annotate with list of installed plugins
+        installed_plugin_names = [
+            plugin["name"]
+            for plugin in (await datasette.client.get("/-/plugins.json")).json()
+        ]
+        for plugin in plugins:
+            plugin["installed"] = (
+                "installed"
+                if plugin["name"] in installed_plugin_names
+                else "not installed"
+            )
+        datasette.remove_database("_memory")
+        datasette.add_memory_database("temporary")
+        plugin_directory_db = datasette.add_memory_database("plugin_directory")
+
+        def write_plugins(conn):
+            db = sqlite_utils.Database(conn)
+            db["plugins"].insert_all(plugins, pk="full_name")
+            db["plugins"].enable_fts(["full_name", "name", "description"])
+
+        await plugin_directory_db.execute_write_fn(write_plugins, block=True)
+
+    return inner
 
 
 @hookimpl
@@ -240,3 +268,26 @@ def register_routes():
         (r"^/-/dump-temporary-to-file$", dump_temporary_to_file),
         (r"^/-/restore-temporary-from-file$", restore_temporary_from_file),
     ]
+
+
+def suffix(d):
+    return "th" if 11 <= d <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(d % 10, "th")
+
+
+def prettydate(date):
+    if isinstance(date, str):
+        try:
+            date = parser.parse(date)
+        except parser.ParserError:
+            return date
+    return "{day}{suffix} {month} {year}".format(
+        day=date.day,
+        month=date.strftime("%B"),
+        suffix=suffix(date.day),
+        year=date.year,
+    )
+
+
+@hookimpl
+def extra_template_vars():
+    return {"prettydate": prettydate}
