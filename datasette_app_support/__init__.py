@@ -35,7 +35,6 @@ def check_auth(request):
     env_token = os.environ.get("DATASETTE_API_TOKEN")
     request_token = request.headers.get("authorization", "").replace("Bearer ", "")
     if not env_token or not request_token:
-        print(f"Not blah {env_token=} {request_token=}")
         return False
     return secrets.compare_digest(
         request_token,
@@ -201,6 +200,35 @@ async def dump_temporary_to_file(request, datasette):
     return Response.json({"ok": True, "path": filepath})
 
 
+async def restore_temporary_from_file(request, datasette):
+    if not check_auth(request):
+        return unauthorized
+    try:
+        filepath = await _filepath_from_json_body(request)
+    except PathError as e:
+        return Response.json({"ok": False, "error": e.message}, status=400)
+    temporary = datasette.get_database("temporary")
+    backup_db = sqlite3.connect(filepath, uri=True)
+    temporary_conn = temporary.connect(write=True)
+    backup_db.backup(temporary_conn)
+    backup_tables = [
+        r[0]
+        for r in backup_db.execute(
+            "select name from sqlite_master where type='table'"
+        ).fetchall()
+    ]
+    temporary_conn.close()
+    backup_db.close()
+    return Response.json(
+        {
+            "ok": True,
+            "path": filepath,
+            "restored_tables": await temporary.table_names(),
+            "backup_tables": backup_tables,
+        }
+    )
+
+
 @hookimpl
 def register_routes():
     return [
@@ -210,4 +238,5 @@ def register_routes():
         (r"^/-/import-csv-file$", import_csv_file),
         (r"^/-/auth-app-user$", auth_app_user),
         (r"^/-/dump-temporary-to-file$", dump_temporary_to_file),
+        (r"^/-/restore-temporary-from-file$", restore_temporary_from_file),
     ]
