@@ -79,6 +79,16 @@ Dumps the contents of the `temporary` in-memory database to the specified file. 
 
 Returns HTTP 200 status with `{"ok": True, "path": "/path/to/backup.db"}` if it works, 400 or 500 with an `"error"` JSON string message if it fails.
 
+### /-/restore-temporary-to-file
+
+```
+POST /-/restore-temporary-from-file
+{"path": "/path/to/backup.db"}
+```
+Restores the `temporary` in-memory database to the contents of the specified file.
+
+Returns HTTP 200 status with `{"ok": True, "path": "/path/to/backup.db"}` if it works, 400 or 500 with an `"error"` JSON string message if it fails.
+
 ## Development
 
 To set up this plugin locally, first checkout the code. Then create a new virtual environment:
