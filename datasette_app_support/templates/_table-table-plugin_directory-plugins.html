@@ -1,10 +1,10 @@
 <p class="custom-sort-by">Sort by
 {% for column in display_columns %}
 {% if column.name in ("stargazers_count", "downloads_this_week", "latest_release_at") %}
-    {% if column.name == sort %}
-        <a href="{{ path_with_replaced_args(request, {'_sort_desc': column.name, '_sort': None, '_next': None}) }}" rel="nofollow">{{ column.name }}&nbsp;▼</a>
+    {% if column.name == sort_desc %}
+      <a href="{{ path_with_replaced_args(request, {'_sort': column.name, '_sort_desc': None, '_next': None}) }}" rel="nofollow">{{ column.name }}&nbsp;▲</a>
     {% else %}
-        <a href="{{ path_with_replaced_args(request, {'_sort': column.name, '_sort_desc': None, '_next': None}) }}" rel="nofollow">{{ column.name }}{% if column.name == sort_desc %}&nbsp;▲{% endif %}</a>
+      <a href="{{ path_with_replaced_args(request, {'_sort_desc': column.name, '_sort': None, '_next': None}) }}" rel="nofollow">{{ column.name }}{% if column.name == sort %}&nbsp;▼{% endif %}</a>
     {% endif %}
     <span class="middot">&middot;</span>
   {% endif %}
