@@ -81,6 +81,16 @@ document.addEventListener('DOMContentLoaded', () => {
       );
     });
   });
+  Array.from(document.querySelectorAll(".uninstall-plugin-button")).forEach(button => {
+    button.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      ev.target.style.pointerEvents = 'none';
+      datasetteApp.uninstallPlugin(
+        ev.target.dataset.plugin,
+        ev.target
+      );
+    });
+  });
 });
 </script>
 {% endblock %}

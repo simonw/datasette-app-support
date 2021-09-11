@@ -22,9 +22,12 @@
 <p><strong>Downloads this week:</strong> {{ row.downloads_this_week }} &nbsp; <strong>Stars:</strong> {{ row.stargazers_count }}</p>
 <p><strong>Latest release:</strong> {{ row.tag_name }} on {{ prettydate(row.latest_release_at) }}</p>
 {% if row.installed == "installed" %}
-  <p><strong>{{ row.installed_version }} currently installed</strong></p>
+  <p><strong>{{ row.installed_version }} currently installed</strong>{% if row.is_default %} (default plugin){% endif %}</p>
   {% if actor.id == "root" and row.upgrade == "upgrade available" %}
     <p><a class="plugin-button upgrade-plugin-button" data-plugin="{{ row.name }}" data-pluginversion="{{ row.tag_name }}" href="#">Upgrade to {{ row.tag_name }}</a></p>
+  {% endif %}
+  {% if actor.id == "root" and not row.is_default %}
+    <p><a class="plugin-button uninstall-plugin-button" data-plugin="{{ row.name }}" data-pluginversion="{{ row.tag_name }}" href="#">Uninstall {{ row.tag_name }}</a></p>
   {% endif %}
 {% else %}
   {% if actor.id == "root" %}

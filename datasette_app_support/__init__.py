@@ -25,6 +25,7 @@ def startup(datasette):
             plugin["name"]: plugin["version"]
             for plugin in (await datasette.client.get("/-/plugins.json")).json()
         }
+        default_plugins = (os.environ.get("DATASETTE_DEFAULT_PLUGINS") or "").split()
         for plugin in plugins:
             is_installed = plugin["name"] in installed_plugins
             installed_version = installed_plugins.get(plugin["name"])
@@ -42,6 +43,7 @@ def startup(datasette):
                 )
                 else None
             )
+            plugin["is_default"] = plugin["name"] in default_plugins
 
         datasette.remove_database("_memory")
         datasette.add_memory_database("temporary")
