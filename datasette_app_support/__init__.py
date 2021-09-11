@@ -31,7 +31,7 @@ def startup(datasette):
             plugin["installed"] = "installed" if is_installed else "not installed"
             plugin["installed_version"] = installed_version
             plugin["upgrade"] = (
-                "upgrade_available"
+                "upgrade available"
                 if (
                     is_installed
                     and installed_version

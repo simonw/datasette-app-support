@@ -22,9 +22,12 @@
 <p><strong>Latest release:</strong> {{ row.tag_name }} on {{ prettydate(row.latest_release_at) }}</p>
 {% if row.installed == "installed" %}
   <p><strong>{{ row.installed_version }} currently installed</strong></p>
+  {% if actor.id == "root" and row.upgrade == "upgrade available" %}
+    <p><a class="plugin-button upgrade-plugin-button" data-plugin="{{ row.name }}" data-pluginversion="{{ row.tag_name }}" href="#">Upgrade to {{ row.tag_name }}</a></p>
+  {% endif %}
 {% else %}
-  {% if actor.id == "root" and row.installed == "not installed" %}
-    <p><a class="install-plugin-button" data-plugin="{{ row.name }}" href="#">Install plugin: {{ row.name }}</a></p>
+  {% if actor.id == "root" %}
+    <p><a class="plugin-button install-plugin-button" data-plugin="{{ row.name }}" data-pluginversion="{{ row.tag_name }}" href="#">Install plugin: {{ row.name }}</a></p>
   {% endif %}
 {% endif %}
 </div>

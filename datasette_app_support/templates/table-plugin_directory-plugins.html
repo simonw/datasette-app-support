@@ -29,7 +29,7 @@ h3 {
   max-width: 40%;
   float: right;
 }
-.install-plugin-button {
+.plugin-button {
   box-shadow: 0px 4px 14px -7px #0e0c82;
   background: linear-gradient(to bottom, #8484f4 5%, rgb(94, 92, 172) 100%);
   background-color: #8484f4;
@@ -44,14 +44,14 @@ h3 {
   text-decoration: none;
   text-shadow: 0px 1px 0px #3d768a;
 }
-.install-plugin-button:link,
-.install-plugin-button:visited,
-.install-plugin-button:hover
-.install-plugin-button:focus {
+.plugin-button:link,
+.plugin-button:visited,
+.plugin-button:hover
+.plugin-button:focus {
   color: white;
   text-decoration: none;
 }
-.install-plugin-button:active {
+.plugin-button:active {
   position:relative;
   top: 1px;
 }
@@ -63,13 +63,22 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!div.querySelectorAll("ul li").length) {
     div.parentNode.removeChild(div);
   }
-  // Configure install buttons
-  var buttons = document.querySelectorAll(".install-plugin-button");
-  Array.from(buttons).forEach(button => {
+  // Configure install and upgrade buttons
+  Array.from(document.querySelectorAll(".install-plugin-button")).forEach(button => {
     button.addEventListener("click", (ev) => {
       ev.preventDefault();
       ev.target.style.pointerEvents = 'none';
       datasetteApp.installPlugin(ev.target.dataset.plugin, ev.target);
+    });
+  });
+  Array.from(document.querySelectorAll(".upgrade-plugin-button")).forEach(button => {
+    button.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      ev.target.style.pointerEvents = 'none';
+      datasetteApp.installPlugin(
+        `${ev.target.dataset.plugin}==${ev.target.dataset.pluginversion}`,
+        ev.target
+      );
     });
   });
 });
