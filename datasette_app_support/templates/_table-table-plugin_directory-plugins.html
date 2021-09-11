@@ -11,6 +11,10 @@
 {% endfor %}
 </p>
 
+{% if not display_rows %}
+  <p><strong><a href="?_facet=installed&_facet=upgrade">Show all plugins</a></strong></p>
+{% endif %}
+
 {% for row in display_rows %}
 <div class="plugin-row">
   {% if row.usesCustomOpenGraphImage %}
