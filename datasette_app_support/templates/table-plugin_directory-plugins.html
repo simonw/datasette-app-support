@@ -58,6 +58,12 @@ h3 {
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  // Hide upgrade facet if no upgrades available
+  var div = document.getElementById("facet-upgrade");
+  if (!div.querySelectorAll("ul li").length) {
+    div.parentNode.removeChild(div);
+  }
+  // Configure install buttons
   var buttons = document.querySelectorAll(".install-plugin-button");
   Array.from(buttons).forEach(button => {
     button.addEventListener("click", (ev) => {

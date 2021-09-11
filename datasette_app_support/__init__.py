@@ -3,6 +3,7 @@ from datasette.utils.asgi import Response, Forbidden
 from datasette.utils import sqlite3
 from datasette import hookimpl
 from dateutil import parser
+from packaging import version
 from sqlite_utils.utils import rows_from_file
 import httpx
 import json
@@ -20,16 +21,28 @@ def startup(datasette):
             "https://datasette.io/content/plugins.json?_shape=array"
         ).json()
         # Annotate with list of installed plugins
-        installed_plugin_names = [
-            plugin["name"]
+        installed_plugins = {
+            plugin["name"]: plugin["version"]
             for plugin in (await datasette.client.get("/-/plugins.json")).json()
-        ]
+        }
         for plugin in plugins:
-            plugin["installed"] = (
-                "installed"
-                if plugin["name"] in installed_plugin_names
-                else "not installed"
+            is_installed = plugin["name"] in installed_plugins
+            installed_version = installed_plugins.get(plugin["name"])
+            plugin["installed"] = "installed" if is_installed else "not installed"
+            plugin["installed_version"] = installed_version
+            plugin["upgrade"] = (
+                "upgrade_available"
+                if (
+                    is_installed
+                    and installed_version
+                    and (
+                        version.parse(installed_version)
+                        < version.parse(plugin["tag_name"])
+                    )
+                )
+                else None
             )
+
         datasette.remove_database("_memory")
         datasette.add_memory_database("temporary")
         plugin_directory_db = datasette.add_memory_database("plugin_directory")

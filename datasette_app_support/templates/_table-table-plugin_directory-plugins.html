@@ -21,7 +21,7 @@
 <p><strong>Downloads this week:</strong> {{ row.downloads_this_week }} &nbsp; <strong>Stars:</strong> {{ row.stargazers_count }}</p>
 <p><strong>Latest release:</strong> {{ row.tag_name }} on {{ prettydate(row.latest_release_at) }}</p>
 {% if row.installed == "installed" %}
-  <p><strong>Currently installed</strong></p>
+  <p><strong>{{ row.installed_version }} currently installed</strong></p>
 {% else %}
   {% if actor.id == "root" and row.installed == "not installed" %}
     <p><a class="install-plugin-button" data-plugin="{{ row.name }}" href="#">Install plugin: {{ row.name }}</a></p>
