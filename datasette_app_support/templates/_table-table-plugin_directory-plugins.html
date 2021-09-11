@@ -24,7 +24,7 @@
   <p><strong>Currently installed</strong></p>
 {% else %}
   {% if actor.id == "root" and row.installed == "not installed" %}
-    <p><a class="install-plugin-button" href="javascript:datasetteApp.installPlugin('{{ row.name }}')">Install plugin: {{ row.name }}</a></p>
+    <p><a class="install-plugin-button" data-plugin="{{ row.name }}" href="#">Install plugin: {{ row.name }}</a></p>
   {% endif %}
 {% endif %}
 </div>

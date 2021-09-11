@@ -56,4 +56,16 @@ h3 {
   top: 1px;
 }
 </style>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  var buttons = document.querySelectorAll(".install-plugin-button");
+  Array.from(buttons).forEach(button => {
+    button.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      ev.target.style.pointerEvents = 'none';
+      datasetteApp.installPlugin(ev.target.dataset.plugin, ev.target);
+    });
+  });
+});
+</script>
 {% endblock %}
