@@ -36,6 +36,8 @@ def startup(datasette):
 
         def write_plugins(conn):
             db = sqlite_utils.Database(conn)
+            for table in ("plugins", "plugins_fts"):
+                db[table].drop(ignore=True)
             db["plugins"].insert_all(plugins, pk="full_name")
             db["plugins"].enable_fts(["full_name", "name", "description"])
 
