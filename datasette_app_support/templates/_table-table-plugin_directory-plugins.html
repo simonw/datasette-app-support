@@ -17,7 +17,8 @@
   <img src="{{ row.openGraphImageUrl }}">
 {% endif %}
 <h2>{{ row.name }}</h2>
-<p>{{ row.description or "" }}</p>
+{% if row.description %}<p>{{ row.description }}</p>{% endif %}
+<p><a href="https://datasette.io/plugins/{{ row.name }}">{{ row.name }} documentation</a></p>
 <p><strong>Downloads this week:</strong> {{ row.downloads_this_week }} &nbsp; <strong>Stars:</strong> {{ row.stargazers_count }}</p>
 <p><strong>Latest release:</strong> {{ row.tag_name }} on {{ prettydate(row.latest_release_at) }}</p>
 {% if row.installed == "installed" %}
