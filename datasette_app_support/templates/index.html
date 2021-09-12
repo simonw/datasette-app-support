@@ -74,37 +74,42 @@ const h = (text) =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;");
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   let div = document.querySelector("#example-csvs");
   let details = div.querySelector("details");
-  fetch(examples_url)
-    .then((r) => r.json())
-    .then((examples) => {
-      let html = examples
-        .map(
-          (row) => `
-      <li>
-        <h3>${h(row.name)}</h3>
-        <div style="padding-left: 0.8em">
-          <p style="font-size: 0.9em">${h(row.description)}</p>
-          <p>
-            <strong>Source</strong>: <a href="${h(row.source_url)}">${h(row.source)}</a>
-            &nbsp;&nbsp;&nbsp;&nbsp;<strong>About</strong>: <a href="${h(row.about_url)}">${h(row.about)}</a>
-          </p>
-        </div>
-        <a class="import-csv-button" data-csvurl="${h(row.url)}" data-name="${h(row.name)}" data-tablename="${h(row.table_name)}" href="#">Import and open  this CSV</a>
-      </li>`
-        )
-        .join("\n");
-        details.innerHTML += "<ul>" + html + "</ul>";
-      Array.from(div.querySelectorAll(".import-csv-button")).forEach(a => {
-        a.addEventListener("click", (ev) => {
-          ev.preventDefault();
-          datasetteApp.importCsvFromUrl(ev.target.dataset.csvurl, ev.target);
-        });
-      });
-      div.style.display = "block";
+  let alreadyInstalled = await (await fetch(
+    "/temporary.json?sql=select+name+from+sqlite_master+where+type+=+'table'&_shape=arrayfirst"
+  )).json();
+  // Figure out what's installed already
+  var examples = await (await fetch(
+    examples_url
+  )).json();
+  let html = examples
+    .map(
+      (row) => `
+  <li>
+    <h3>${h(row.name)}</h3>
+    <div style="padding-left: 0.8em">
+      <p style="font-size: 0.9em">${h(row.description)}</p>
+      <p>
+        <strong>Source</strong>: <a href="${h(row.source_url)}">${h(row.source)}</a>
+        &nbsp;&nbsp;&nbsp;&nbsp;<strong>About</strong>: <a href="${h(row.about_url)}">${h(row.about)}</a>
+      </p>
+    </div>
+    ${alreadyInstalled.includes(row.table_name) ?
+      `<p><strong>Already imported</strong>: <a href="/temporary/${row.table_name}">${row.table_name}</a></p` :
+      `<a class="import-csv-button" data-csvurl="${h(row.url)}" data-name="${h(row.name)}" data-tablename="${h(row.table_name)}" href="#">Import and open  this CSV</a>`}
+  </li>`
+    )
+    .join("\n");
+    details.innerHTML += "<ul>" + html + "</ul>";
+  Array.from(div.querySelectorAll(".import-csv-button")).forEach(a => {
+    a.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      datasetteApp.importCsvFromUrl(ev.target.dataset.csvurl, ev.target);
     });
+  });
+  div.style.display = "block";
 });
 
 </script>
