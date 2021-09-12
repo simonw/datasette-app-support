@@ -36,7 +36,7 @@ setup(
     },
     entry_points={"datasette": ["app_support = datasette_app_support"]},
     install_requires=["datasette>=0.59a2", "sqlite-utils", "packaging"],
-    extras_require={"test": ["pytest", "pytest-asyncio", "black"]},
+    extras_require={"test": ["pytest", "pytest-asyncio", "black", "pytest-httpx"]},
     tests_require=["datasette-app-support[test]"],
     python_requires=">=3.6",
 )

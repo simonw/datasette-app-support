@@ -5,6 +5,7 @@ import pytest
 @pytest.mark.asyncio
 async def test_new_empty_database_file(tmpdir):
     datasette = Datasette([], memory=True)
+    await datasette.invoke_startup()
     path = str(tmpdir / "new.db")
     response = await datasette.client.post(
         "/-/new-empty-database-file",

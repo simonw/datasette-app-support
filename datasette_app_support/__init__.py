@@ -11,6 +11,7 @@ import os
 import pathlib
 import secrets
 import sqlite_utils
+from .utils import derive_table_name, import_csv_url_to_database
 
 
 @hookimpl
@@ -68,12 +69,16 @@ def permission_allowed(actor, action, resource):
         return False
 
 
-unauthorized = Response.json({"ok": False, "error": "Not authorized"}, status=401)
-
-
 @hookimpl
 def extra_css_urls(datasette):
     return [datasette.urls.static_plugins("datasette_app_support", "sticky-footer.css")]
+
+
+def error(message, status=400):
+    return Response.json({"ok": False, "error": message}, status=status)
+
+
+unauthorized = error("Not authorized", status=401)
 
 
 def check_auth(request):
@@ -93,15 +98,13 @@ async def open_database_file(request, datasette):
     try:
         filepath = await _filepath_from_json_body(request)
     except PathError as e:
-        return Response.json({"ok": False, "error": e.message}, status=400)
+        return error(e.message)
     # Confirm it's a valid SQLite database
     conn = sqlite3.connect(filepath)
     try:
         conn.execute("select * from sqlite_master")
     except sqlite3.DatabaseError:
-        return Response.json(
-            {"ok": False, "error": "Not a valid SQLite database"}, status=400
-        )
+        return error("Not a valid SQLite database")
     # Is that file already open?
     existing_paths = {
         pathlib.Path(db.path).resolve()
@@ -109,9 +112,7 @@ async def open_database_file(request, datasette):
         if db.path
     }
     if pathlib.Path(filepath).resolve() in existing_paths:
-        return Response.json(
-            {"ok": False, "error": "That file is already open"}, status=400
-        )
+        return error("That file is already open")
     added_db = datasette.add_database(
         Database(datasette, path=filepath, is_mutable=True)
     )
@@ -124,12 +125,10 @@ async def new_empty_database_file(request, datasette):
     try:
         filepath = await _filepath_from_json_body(request, must_exist=False)
     except PathError as e:
-        return Response.json({"ok": False, "error": e.message}, status=400)
+        return error(e.message)
     # File should not exist yet
     if os.path.exists(filepath):
-        return Response.json(
-            {"ok": False, "error": "That file already exists"}, status=400
-        )
+        return error("That file already exists")
 
     conn = sqlite3.connect(filepath)
     conn.execute("vacuum")
@@ -166,6 +165,32 @@ async def open_csv_file(request, datasette):
     return await _import_csv_file(request, datasette, database="temporary")
 
 
+async def open_csv_from_url(request, datasette):
+    body = await request.post_body()
+    try:
+        data = json.loads(body)
+    except ValueError:
+        return error("Invalid request body, should be JSON")
+    url = data.get("url")
+    if not url or not (url.startswith("http://") or url.startswith("https://")):
+        return error("URL must start with http:// or https://")
+    database = data.get("database") or "temporary"
+    if database and (database not in datasette.databases):
+        return error("Invalid database")
+    db = datasette.get_database(database)
+    try:
+        table_name, num_rows = await import_csv_url_to_database(url, db)
+    except Exception as e:
+        return error(str(e), status=500)
+    return Response.json(
+        {
+            "ok": True,
+            "path": datasette.urls.table(db.name, table_name),
+            "rows": num_rows,
+        }
+    )
+
+
 async def import_csv_file(request, datasette):
     return await _import_csv_file(request, datasette)
 
@@ -176,22 +201,16 @@ async def _import_csv_file(request, datasette, database=None):
     try:
         filepath, body = await _filepath_from_json_body(request, return_data=True)
     except PathError as e:
-        return Response.json({"ok": False, "error": e.message}, status=400)
+        return error(e.message)
 
     if database is None:
         database = body.get("database")
     if not database or database not in datasette.databases:
-        return Response.json({"ok": False, "error": "Invalid database"}, status=400)
+        return error("Invalid database")
 
     db = datasette.get_database(database)
 
-    # Derive a table name
-    table_name = pathlib.Path(filepath).stem
-    root_table_name = table_name
-    i = 1
-    while await db.table_exists(table_name):
-        table_name = "{}_{}".format(root_table_name, i)
-        i += 1
+    table_name = await derive_table_name(db, pathlib.Path(filepath).stem)
 
     try:
         rows = rows_from_file(open(filepath, "rb"))[0]
@@ -210,7 +229,7 @@ async def _import_csv_file(request, datasette, database=None):
             }
         )
     except Exception as e:
-        return Response.json({"ok": False, "error": str(e)}, status=500)
+        return error(str(e), status=500)
 
 
 async def auth_app_user(request, datasette):
@@ -233,7 +252,7 @@ async def dump_temporary_to_file(request, datasette):
     try:
         filepath = await _filepath_from_json_body(request, must_exist=False)
     except PathError as e:
-        return Response.json({"ok": False, "error": e.message}, status=400)
+        return error(e.message)
     db = datasette.get_database("temporary")
 
     def backup(conn):
@@ -251,7 +270,7 @@ async def restore_temporary_from_file(request, datasette):
     try:
         filepath = await _filepath_from_json_body(request)
     except PathError as e:
-        return Response.json({"ok": False, "error": e.message}, status=400)
+        return error(e.message)
     temporary = datasette.get_database("temporary")
     backup_db = sqlite3.connect(filepath, uri=True)
     temporary_conn = temporary.connect(write=True)
@@ -280,6 +299,7 @@ def register_routes():
         (r"^/-/open-database-file$", open_database_file),
         (r"^/-/new-empty-database-file$", new_empty_database_file),
         (r"^/-/open-csv-file$", open_csv_file),
+        (r"^/-/open-csv-from-url$", open_csv_from_url),
         (r"^/-/import-csv-file$", import_csv_file),
         (r"^/-/auth-app-user$", auth_app_user),
         (r"^/-/dump-temporary-to-file$", dump_temporary_to_file),

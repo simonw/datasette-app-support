@@ -6,6 +6,7 @@ import sqlite3
 @pytest.mark.asyncio
 async def test_open_database_files(tmpdir):
     datasette = Datasette([], memory=True)
+    await datasette.invoke_startup()
     path = str(tmpdir / "test.db")
     db = sqlite3.connect(path)
     db.execute("create table foo (id integer primary key)")
@@ -35,6 +36,7 @@ async def test_open_database_files(tmpdir):
 @pytest.mark.parametrize("file", ("does-not-exist.txt", "invalid.txt"))
 async def test_open_database_files_invalid(file, tmpdir):
     datasette = Datasette([], memory=True)
+    await datasette.invoke_startup()
     if file == "does-not-exist.txt":
         path = str(tmpdir / "does-not-exists.txt")
     elif file == "invalid.txt":

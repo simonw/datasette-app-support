@@ -69,6 +69,16 @@ Permanently imports a CSV or TSV file into the specified database. Used by the "
 
 Returns HTTP 200 status with `{"ok": True, "path": "/database_name/table"}` if it works, 400 or 500 with an `"error"` JSON string message if it fails.
 
+### /-/open-csv-from-url
+
+```
+POST /-/open-csv-from-url
+{"url": "https://example.com/file.csv"}
+```
+Imports a CSV file into the default `/temporary` in-memory database. Used by the "Open CSV from URL..." menu option.
+
+Returns HTTP 200 status with `{"ok": True, "path": "/temporary/table"}` if it works, 400 or 500 with an `"error"` JSON string message if it fails.
+
 ### /-/dump-temporary-to-file
 
 ```

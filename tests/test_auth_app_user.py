@@ -5,6 +5,7 @@ import pytest
 @pytest.mark.asyncio
 async def test_auth_app_user():
     datasette = Datasette([], memory=True)
+    await datasette.invoke_startup()
     response = await datasette.client.post(
         "/-/auth-app-user",
         json={"redirect": "/-/metadata"},
