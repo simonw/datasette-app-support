@@ -49,12 +49,12 @@ class AsyncDictReader:
         return result
 
 
-async def import_csv_url_to_database(url, db):
+async def import_csv_url_to_database(url, db, requested_table_name=None):
     # Returns table_name, num_rows
     last_path_bit = urllib.parse.urlparse(url).path.split("/")[-1]
     last_path_bit_minus_extension = last_path_bit.rsplit(".", 1)[0]
-    table_name = await derive_table_name(
-        db, last_path_bit_minus_extension or "data_from_csv"
+    table_name = requested_table_name or (
+        await derive_table_name(db, last_path_bit_minus_extension or "data_from_csv")
     )
 
     async def write_batch(rows):

@@ -178,8 +178,11 @@ async def open_csv_from_url(request, datasette):
     if database and (database not in datasette.databases):
         return error("Invalid database")
     db = datasette.get_database(database)
+    requested_table_name = data.get("table_name")
     try:
-        table_name, num_rows = await import_csv_url_to_database(url, db)
+        table_name, num_rows = await import_csv_url_to_database(
+            url, db, requested_table_name
+        )
     except Exception as e:
         return error(str(e), status=500)
     return Response.json(

@@ -60,7 +60,10 @@ async def test_import_csv_files(tmpdir):
 
 
 @pytest.mark.asyncio
-async def test_import_csv_url(httpx_mock):
+@pytest.mark.parametrize(
+    "table_name,expected", ((None, "test"), ("creatures", "creatures"))
+)
+async def test_import_csv_url(httpx_mock, table_name, expected):
     httpx_mock.add_response(
         url="http://example.com/test.csv", data="id,name\n1,Banyan\n2,Crystal"
     )
@@ -68,12 +71,18 @@ async def test_import_csv_url(httpx_mock):
     await datasette.invoke_startup()
     response = await datasette.client.post(
         "/-/open-csv-from-url",
-        json={"url": "http://example.com/test.csv"},
+        json={"url": "http://example.com/test.csv", "table_name": table_name},
         headers={"Authorization": "Bearer fake-token"},
     )
     assert response.status_code == 200
-    assert response.json() == {"ok": True, "path": "/temporary/test", "rows": 2}
-    response2 = await datasette.client.get("/temporary/test.json?_shape=array")
+    assert response.json() == {
+        "ok": True,
+        "path": "/temporary/{}".format(expected),
+        "rows": 2,
+    }
+    response2 = await datasette.client.get(
+        "/temporary/{}.json?_shape=array".format(expected)
+    )
     assert response2.json() == [
         {"rowid": 1, "id": "1", "name": "Banyan"},
         {"rowid": 2, "id": "2", "name": "Crystal"},

@@ -73,9 +73,9 @@ Returns HTTP 200 status with `{"ok": True, "path": "/database_name/table"}` if i
 
 ```
 POST /-/open-csv-from-url
-{"url": "https://example.com/file.csv"}
+{"url": "https://example.com/file.csv", "table_name": "My_suggested_table_name"}
 ```
-Imports a CSV file into the default `/temporary` in-memory database. Used by the "Open CSV from URL..." menu option.
+Imports a CSV file into the default `/temporary` in-memory database. Used by the "Open CSV from URL..." menu option. `table_name` is optional - if omitted the name to use will be derived from the URL.
 
 Returns HTTP 200 status with `{"ok": True, "path": "/temporary/table"}` if it works, 400 or 500 with an `"error"` JSON string message if it fails.
 
