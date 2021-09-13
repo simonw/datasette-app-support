@@ -58,6 +58,7 @@ def startup(datasette):
                 db[table].drop(ignore=True)
             if plugins:
                 db["plugins"].insert_all(plugins, pk="full_name")
+                db["plugins"].enable_fts(["full_name", "name", "description"])
             else:
                 # Create an empty table
                 db["plugins"].create(
@@ -81,7 +82,6 @@ def startup(datasette):
                         "is_default": int,
                     }
                 )
-                db["plugins"].enable_fts(["full_name", "name", "description"])
 
         await plugin_directory_db.execute_write_fn(write_plugins, block=True)
 
