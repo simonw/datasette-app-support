@@ -100,7 +100,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       <p style="font-size: 0.9em">${h(row.description)}</p>
       <p>
         <strong>Source</strong>: <a href="${h(row.source_url)}">${h(row.source)}</a>
-        &nbsp;&nbsp;&nbsp;&nbsp;<strong>About</strong>: <a href="${h(row.about_url)}">${h(row.about)}</a>
+        ${row.about_url ? `&nbsp;&nbsp;&nbsp;&nbsp;<strong>About</strong>: <a href="${h(row.about_url)}">${h(row.about)}</a>`: ''}
       </p>
     </div>
     ${alreadyInstalled.includes(row.table_name) ?
