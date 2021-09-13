@@ -17,10 +17,12 @@ from .utils import derive_table_name, import_csv_url_to_database
 @hookimpl
 def startup(datasette):
     async def inner():
-        # TODO: handle API pagination
-        plugins = httpx.get(
-            "https://datasette.io/content/plugins.json?_shape=array"
-        ).json()
+        try:
+            plugins = httpx.get(
+                "https://datasette.io/content/plugins.json?_shape=array&_size=max"
+            ).json()
+        except httpx.HTTPError:
+            plugins = []
         # Annotate with list of installed plugins
         installed_plugins = {
             plugin["name"]: plugin["version"]
@@ -54,8 +56,32 @@ def startup(datasette):
             db = sqlite_utils.Database(conn)
             for table in ("plugins", "plugins_fts"):
                 db[table].drop(ignore=True)
-            db["plugins"].insert_all(plugins, pk="full_name")
-            db["plugins"].enable_fts(["full_name", "name", "description"])
+            if plugins:
+                db["plugins"].insert_all(plugins, pk="full_name")
+            else:
+                # Create an empty table
+                db["plugins"].create(
+                    {
+                        "name": str,
+                        "full_name": str,
+                        "owner": str,
+                        "description": str,
+                        "stargazers_count": int,
+                        "tag_name": str,
+                        "latest_release_at": str,
+                        "created_at": str,
+                        "openGraphImageUrl": str,
+                        "usesCustomOpenGraphImage": int,
+                        "downloads_this_week": int,
+                        "is_plugin": int,
+                        "is_tool": int,
+                        "installed": str,
+                        "installed_version": str,
+                        "upgrade": str,
+                        "is_default": int,
+                    }
+                )
+                db["plugins"].enable_fts(["full_name", "name", "description"])
 
         await plugin_directory_db.execute_write_fn(write_plugins, block=True)
 
@@ -329,5 +355,15 @@ def prettydate(date):
 
 
 @hookimpl
-def extra_template_vars():
-    return {"prettydate": prettydate}
+def extra_template_vars(datasette):
+    async def inner():
+        return {
+            "prettydate": prettydate,
+            "total_plugin_count": (
+                await datasette.get_database("plugin_directory").execute(
+                    "select count(*) from plugins"
+                )
+            ).single_value(),
+        }
+
+    return inner

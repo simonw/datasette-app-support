@@ -11,7 +11,11 @@
 {% endfor %}
 </p>
 
-{% if not display_rows %}
+{% if not total_plugin_count %}
+  <p style="border: 1px solid black; padding: 0.5em"><strong>Could not access plugins</strong> - check your internet connection and restart this application.</p>
+{% endif %}
+
+{% if total_plugin_count and not display_rows %}
   <p><strong><a href="?_facet=installed&_facet=upgrade">Show all plugins</a></strong></p>
 {% endif %}
 

@@ -12,7 +12,7 @@ def mock_settings_env_vars():
 @pytest.fixture(autouse=True)
 def mock_datasette_plugin_api(httpx_mock):
     httpx_mock.add_response(
-        url="https://datasette.io/content/plugins.json?_shape=array",
+        url="https://datasette.io/content/plugins.json?_shape=array&_size=max",
         json=[
             {
                 "name": "datasette-write",
