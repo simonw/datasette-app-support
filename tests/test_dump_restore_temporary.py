@@ -22,7 +22,6 @@ async def test_dump_temporary_to_file(tmpdir):
         "/-/dump-temporary-to-file",
         json={"path": backup_path},
         headers={"Authorization": "Bearer fake-token"},
-        allow_redirects=False,
     )
     assert response.status_code == 200
     assert response.json() == {"ok": True, "path": backup_path}
@@ -50,7 +49,6 @@ async def test_restore_temporary_from_file(tmpdir):
         "/-/restore-temporary-from-file",
         json={"path": backup_path},
         headers={"Authorization": "Bearer fake-token"},
-        allow_redirects=False,
     )
     assert response.status_code == 200
     assert response.json() == {

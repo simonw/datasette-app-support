@@ -65,7 +65,7 @@ async def test_import_csv_files(tmpdir):
 )
 async def test_import_csv_url(httpx_mock, table_name, expected):
     httpx_mock.add_response(
-        url="http://example.com/test.csv", data="id,name\n1,Banyan\n2,Crystal"
+        url="http://example.com/test.csv", text="id,name\n1,Banyan\n2,Crystal"
     )
     datasette = Datasette([], memory=True)
     await datasette.invoke_startup()

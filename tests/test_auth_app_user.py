@@ -10,7 +10,6 @@ async def test_auth_app_user():
         "/-/auth-app-user",
         json={"redirect": "/-/metadata"},
         headers={"Authorization": "Bearer fake-token"},
-        allow_redirects=False,
     )
     assert response.status_code == 302
     assert response.headers["location"] == "/-/metadata"

@@ -45,7 +45,7 @@ async def test_plugin_directory():
 async def test_plugin_directory_no_connection(httpx_mock):
     httpx_mock.reset(False)
 
-    def raise_timeout(request, extensions: dict):
+    def raise_timeout(request):
         raise httpx.NetworkError("No internet connection", request=request)
 
     httpx_mock.add_callback(raise_timeout)
