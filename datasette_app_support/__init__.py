@@ -41,7 +41,7 @@ def startup(datasette):
                     and installed_version
                     and (
                         version.parse(installed_version)
-                        < version.parse(plugin["tag_name"])
+                        < version.parse(plugin.get("tag_name", ""))
                     )
                 )
                 else None
