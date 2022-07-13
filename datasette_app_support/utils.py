@@ -67,7 +67,7 @@ async def import_csv_url_to_database(url, db, requested_table_name=None):
         return r
 
     async with httpx.AsyncClient() as client:
-        async with client.stream("GET", url) as response:
+        async with client.stream("GET", url, follow_redirects=True) as response:
             reader = AsyncDictReader(response.aiter_lines())
             batch = []
             num_rows = 0

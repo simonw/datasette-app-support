@@ -61,29 +61,55 @@ async def test_import_csv_files(tmpdir):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
-    "table_name,expected", ((None, "test"), ("creatures", "creatures"))
+    "should_redirect,table_name,expected_table_name",
+    (
+        (False, None, "test"),
+        (True, None, "test-redirect"),
+        (False, "creatures", "creatures"),
+        (True, "creatures", "creatures"),
+    ),
 )
-async def test_import_csv_url(httpx_mock, table_name, expected):
+async def test_import_csv_url(
+    httpx_mock, should_redirect, table_name, expected_table_name
+):
+    url = "http://example.com/test.csv"
+    if should_redirect:
+        httpx_mock.add_response(
+            url="http://example.com/test-redirect",
+            status_code=302,
+            headers={"Location": "/test.csv"},
+        )
+        url = "http://example.com/test-redirect"
     httpx_mock.add_response(
         url="http://example.com/test.csv", text="id,name\n1,Banyan\n2,Crystal"
     )
     datasette = Datasette([], memory=True)
+    # Reset temporary database, if populated
     await datasette.invoke_startup()
+    await _reset_temporary(datasette)
     response = await datasette.client.post(
         "/-/open-csv-from-url",
-        json={"url": "http://example.com/test.csv", "table_name": table_name},
+        json={"url": url, "table_name": table_name},
         headers={"Authorization": "Bearer fake-token"},
     )
     assert response.status_code == 200
     assert response.json() == {
         "ok": True,
-        "path": "/temporary/{}".format(expected),
+        "path": "/temporary/{}".format(expected_table_name),
         "rows": 2,
     }
     response2 = await datasette.client.get(
-        "/temporary/{}.json?_shape=array".format(expected)
+        "/temporary/{}.json?_shape=array".format(expected_table_name)
     )
     assert response2.json() == [
         {"rowid": 1, "id": "1", "name": "Banyan"},
         {"rowid": 2, "id": "2", "name": "Crystal"},
     ]
+
+
+async def _reset_temporary(datasette):
+    if "temporary" not in datasette.databases:
+        return
+    db = datasette.get_database("temporary")
+    for table in await db.table_names():
+        await db.execute_write("drop table [{}]".format(table))
