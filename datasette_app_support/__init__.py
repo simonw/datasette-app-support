@@ -47,8 +47,10 @@ def startup(datasette):
                 else None
             )
             plugin["is_default"] = plugin["name"] in default_plugins
-
-        datasette.remove_database("_memory")
+        try:
+            datasette.remove_database("_memory")
+        except KeyError:
+            pass
         datasette.add_memory_database("temporary")
         plugin_directory_db = datasette.add_memory_database("plugin_directory")
 
