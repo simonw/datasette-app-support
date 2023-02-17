@@ -13,10 +13,16 @@ import secrets
 import sqlite_utils
 from .utils import derive_table_name, import_csv_url_to_database
 
+initialized = False
+
 
 @hookimpl
 def startup(datasette):
     async def inner():
+        global initialized
+        if initialized:
+            return
+        initialized = True
         try:
             plugins = httpx.get(
                 "https://datasette.io/content/plugins.json?_shape=array&_size=max"
