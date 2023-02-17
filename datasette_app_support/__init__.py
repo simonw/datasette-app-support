@@ -17,6 +17,9 @@ from .utils import derive_table_name, import_csv_url_to_database
 @hookimpl
 def startup(datasette):
     async def inner():
+        if getattr(datasette, "_app_support_initialized", False):
+            return
+        datasette._app_support_initialized = True
         try:
             plugins = httpx.get(
                 "https://datasette.io/content/plugins.json?_shape=array&_size=max"
